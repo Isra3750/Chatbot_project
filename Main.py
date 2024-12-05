@@ -2,6 +2,7 @@
 # Will use NLP to query and push DDL towards the database. ALong with regular data modeling checks to vertify that each push is correct and fully compliance towards best pratices.
 # Streamlit and langchain is to be used somewhere...
 
-import pandas as pd
+# pip install python-dotenv to read .env file 
+
 
 print('Hello')
