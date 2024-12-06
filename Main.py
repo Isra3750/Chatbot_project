@@ -11,14 +11,15 @@ from dotenv import load_dotenv
 from groq import Groq
 import os
 
-# Import streamlit for an interface, pip install streamlit
-# https://www.youtube.com/watch?v=zKGeRWjJlTU&list=LL&index=1&t=268s&ab_channel=AlejandroAO-Software%26Ai
+# pip install streamlit, Import streamlit for an UI interface
 import streamlit as st
 
 # load env variable
 load_dotenv()
 
 # Streamlit app configuration
+# Set page name and icons
+st.set_page_config(page_title="Database Chatbot v1", page_icon="🤖")
 st.title("Oracle Database Chatbot")
 st.write("Ask questions about your Oracle database or push DDL queries.")
 
