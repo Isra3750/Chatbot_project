@@ -6,6 +6,7 @@
 
 # pip install python-dotenv to read .env file 
 # pip install groq for LLM API
+# pip install langchain-groq for langchain usage with groq API
 # Import OS to get Key from env
 from dotenv import load_dotenv
 from groq import Groq
@@ -36,7 +37,7 @@ user_query = st.text_input("Enter your query:", placeholder="E.g. What is the to
 
 # Button to submit the query
 if st.button("Submit"):
-    if user_query.strip():  # Check if the input is not empty
+    if user_query is not None and user_query != "":  # Check if the input is not empty
         try:
             # Send the user query to the Groq LLM
             chat_completion = client.chat.completions.create(
