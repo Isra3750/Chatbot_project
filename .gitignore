@@ -1,3 +1,6 @@
 # Ignore the virtual env and the env file
 .venv
 .env
+
+# OpenAI test file - ignore because API key is inserted within code
+Test2.py
