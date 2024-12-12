@@ -59,3 +59,62 @@ if user_query is not None and user_query != "":
         response = st.write_stream(get_response(user_query, st.session_state.chat_history))
 
     st.session_state.chat_history.append(AIMessage(content=response))
+
+"""
+# Sample code with Groq (OpenAI alternative) package:
+from dotenv import load_dotenv
+from groq import Groq
+import os
+
+# pip install streamlit, Import streamlit for an UI interface
+import streamlit as st
+
+# load env variable
+load_dotenv()
+
+# Streamlit app configuration
+# Set page name and icons
+st.set_page_config(page_title="Database Chatbot v1", page_icon="🤖")
+st.title("Oracle Database Chatbot")
+st.write("Ask questions about your Oracle database or push DDL queries.")
+
+# Get API key from env file
+client = Groq(
+    api_key=os.environ.get("GROQ_API_KEY"),
+)
+
+# LLM Model to be used
+LLM_model="llama-3.1-70b-versatile"
+
+# Input from user
+user_query = st.text_input("Enter your query:", placeholder="E.g. What is the total count of the course table?")
+
+# Button to submit the query
+if st.button("Submit"):
+    if user_query is not None and user_query != "":  # Check if the input is not empty
+        try:
+            # Send the user query to the Groq LLM
+            chat_completion = client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": user_query,
+                    }
+                ],
+                model=LLM_model,
+            )
+            # Display the response
+            response = chat_completion.choices[0].message.content
+            st.success("Response:")
+            st.write(response)
+        except Exception as e:
+            st.error("An error occurred while processing your query.")
+            st.write(f"Error details: {e}")
+    else:
+        st.warning("Please enter a valid query.")
+
+# Additional features can be added here for DDL verification and modeling checks
+st.write(f"Note: No database is connected as of 12/5/2024. Current LLM model: {LLM_model}")
+
+    
+"""
