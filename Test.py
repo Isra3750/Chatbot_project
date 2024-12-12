@@ -1,3 +1,4 @@
+# This is for Chat UI only:
 import streamlit as st
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_groq import ChatGroq
@@ -5,60 +6,54 @@ from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
+# pip install streamlit, Import streamlit for an UI interface
+import streamlit as st
+
+# load env variable
 load_dotenv()
 
-# app config
-st.set_page_config(page_title="Streamlit Chatbot", page_icon="🤖")
-st.title("Chatbot")
-
-def get_response(user_query, chat_history):
-
-    template = """
-    You are a helpful assistant. Answer the following questions considering the history of the conversation:
-
-    Chat history: {chat_history}
-
-    User question: {user_question}
-    """
-
-    prompt = ChatPromptTemplate.from_template(template)
-
-    llm = ChatGroq(model_name="llama-3.3-70b-versatile")  # Replace OpenAI LLM with Groq LLM
-        
-    chain = prompt | llm | StrOutputParser()
-    
-    return chain.stream({
-        "chat_history": chat_history,
-        "user_question": user_query,
-    })
-
-# session state
+# Create chat history section in streamlit, if not created before - which it is not
+# st.session_state is object that keep all var (including old ones)
 if "chat_history" not in st.session_state:
-    st.session_state.chat_history = [
-        AIMessage(content="Hello, I am a bot. How can I help you?"),
-    ]
+    # Create chat_history as empty array in your session_state
+    # this will log messages
+    st.session_state.chat_history = []
 
-# conversation
+# Streamlit app configuration
+# Set page name and icons
+st.set_page_config(page_title="Streaming Chatbot v1", page_icon="🤖")
+st.title("Streaming Chatbot")
+st.write("Ask questions about your question to get started!")
+
+# Create the message box with default message
+user_query = st.chat_input("Enter your input...")
+
+# Conversation, this will create the convo structure, layer the texts box during chats
 for message in st.session_state.chat_history:
-    if isinstance(message, AIMessage):
-        with st.chat_message("AI"):
-            st.write(message.content)
-    elif isinstance(message, HumanMessage):
-        with st.chat_message("Human"):
-            st.write(message.content)
+    # human to be icon with human, check if message is human or not
+    if isinstance(message, HumanMessage):
+        with st.chat_message("Human"): # st.chatmessage to select icon
+            st.markdown(message.content) # this will write it out
+    else:
+        with st.chat_message("AI"): # st.chatmessage to select icon
+            st.markdown(message.content) # this will write it out      
 
-# user input
-user_query = st.chat_input("Type your message here...")
+# Get user query if it is not an null or empty string
 if user_query is not None and user_query != "":
-    st.session_state.chat_history.append(HumanMessage(content=user_query))
-
+    # First, append your user input to chat_history in the session state (as Human message)
+    st.session_state.chat_history.append(HumanMessage(user_query))
+    # show it in streamlit, this will show ur human input in streamlit web UI
     with st.chat_message("Human"):
-        st.markdown(user_query)
-
+        st.markdown(user_query) # markdown are the chat boxes
+    
+    # This will be the AI response
     with st.chat_message("AI"):
-        response = st.write_stream(get_response(user_query, st.session_state.chat_history))
+        st.markdown("IDK")
 
-    st.session_state.chat_history.append(AIMessage(content=response))
+    # Just like the first human append, do the same for AI output
+    st.session_state.chat_history.append(AIMessage(user_query))
+
+# Run file -> streamlit run Test.py
 
 """
 # Sample code with Groq (OpenAI alternative) package:
