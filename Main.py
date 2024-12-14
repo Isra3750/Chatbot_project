@@ -91,7 +91,7 @@ if user_query is not None and user_query != "":
         # write it out with markdown (with invoke in function), or write_stream (with stream in function)
         ai_response = st.write_stream(get_response(user_query, st.session_state.chat_history))
 
-    # Just like the first human append, do the same for AI output
+    # Just like the first human append, do the same for AI output, but with AI message
     st.session_state.chat_history.append(AIMessage(ai_response))
 
 # Run file -> streamlit run Main.py
