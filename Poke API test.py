@@ -1,3 +1,4 @@
+# Create a streamlit chatbot using Langchain and Groq and function definition to connect to Poke API
 from groq import Groq
 from dotenv import load_dotenv
 import os
