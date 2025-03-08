@@ -1,3 +1,4 @@
+"""
 # This is for Chat UI only:
 import streamlit as st
 from langchain_core.messages import AIMessage, HumanMessage
@@ -54,8 +55,8 @@ if user_query is not None and user_query != "":
     st.session_state.chat_history.append(AIMessage(user_query))
 
 # Run file -> streamlit run Test.py
-
 """
+
 # Sample code with Groq (OpenAI alternative) package:
 from dotenv import load_dotenv
 from groq import Groq
@@ -79,7 +80,7 @@ client = Groq(
 )
 
 # LLM Model to be used
-LLM_model="llama-3.1-70b-versatile"
+LLM_model="llama-3.3-70b-versatile"
 
 # Input from user
 user_query = st.text_input("Enter your query:", placeholder="E.g. What is the total count of the course table?")
@@ -110,6 +111,3 @@ if st.button("Submit"):
 
 # Additional features can be added here for DDL verification and modeling checks
 st.write(f"Note: No database is connected as of 12/5/2024. Current LLM model: {LLM_model}")
-
-    
-"""
