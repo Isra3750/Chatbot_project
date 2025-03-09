@@ -15,7 +15,7 @@ st.write("Ask questions about your Oracle database or push DDL queries.")
 
 # Initialize the Groq client (using the Groq API key from environment variables)
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-LLM_model= "llama-3.3-70b-versatile"
+LLM_model="llama-3.3-70b-versatile"
 
 # Function to query Oracle Database 23ai for vector search context
 def query_oracle(search_text):
@@ -88,4 +88,4 @@ if st.button("Submit"):
     else:
         st.warning("Please enter a valid query.")
 
-st.write("\nNote: This example connects to Oracle Database 23ai running in Docker (DSN: localhost:1521/freepdb1).")
+st.write("Note: This example connects to Oracle Database 23ai running in Docker (DSN: localhost:1521/freepdb1).")
