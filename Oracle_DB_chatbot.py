@@ -2,23 +2,38 @@
 import os
 import streamlit as st
 import oracledb
-from groq import Groq
 from dotenv import load_dotenv
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_groq import ChatGroq
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 
 # Load environment variables (e.g. GROQ_API_KEY)
 load_dotenv()
 
+# Initialize chat history in session state if not already created
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
 # Streamlit app configuration
-st.set_page_config(page_title="Database Chatbot v1", page_icon="🤖")
-st.title("Oracle Database Chatbot")
-st.write("Ask questions about your Oracle database or push DDL queries.")
+st.set_page_config(page_title="Oracle Chatbot v1", page_icon="🤖")
+st.title("RAG Chatbot with Oracle database 23ai")
+st.write("Ask questions about your database or movie quotes to get started!")
 
-# Initialize the Groq client (using the Groq API key from environment variables)
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-LLM_model="llama-3.3-70b-versatile"
+# Function to format Oracle retrieval results
+def format_context(rows):
+    if not rows:
+        return "No retrieval context available."
+    lines = []
+    for row in rows:
+        movie_quote, movie, movie_type, movie_year, distance = row
+        lines.append(
+            f"Movie: {movie}, Type: {movie_type}, Year: {movie_year}\nQuote: {movie_quote}\nDistance: {distance}"
+        )
+    return "\n\n".join(lines)
 
-# Function to query Oracle Database 23ai for vector search context
-def query_oracle(search_text):
+# Function to query Oracle Database 23ai for retrieval context using vector search
+def get_oracle_context(search_text):
     sql = """
         SELECT movie_quote, movie, movie_type, movie_year, distance
         FROM (
@@ -33,59 +48,71 @@ def query_oracle(search_text):
         WHERE ROWNUM <= 3
     """
     try:
-        # Connect to Oracle Database running in Docker
         conn = oracledb.connect(user="testuser1", password="testuser1", dsn="localhost:1521/freepdb1")
         cur = conn.cursor()
         cur.execute(sql, search_text=search_text)
         rows = cur.fetchall()
         cur.close()
         conn.close()
-        return rows
+        return format_context(rows)
     except Exception as e:
-        st.error(f"Error querying Oracle DB: {e}")
-        return []
+        return f"Error retrieving context: {e}"
 
-# Helper function to format the retrieved rows into a context string
-def format_context(rows):
-    # Each row is expected as (movie_quote, movie, movie_type, movie_year, distance)
-    context_lines = []
-    for row in rows:
-        movie_quote, movie, movie_type, movie_year, distance = row
-        context_lines.append(
-            f"Movie: {movie}\nType: {movie_type}\nYear: {movie_year}\nQuote: {movie_quote}\nDistance: {distance}"
-        )
-    return "\n\n".join(context_lines)
+# Function to get LLM response with retrieval context incorporated
+def get_response(user_query, chat_history):
+    # Retrieve additional context from Oracle using the user query
+    retrieval_context = get_oracle_context(user_query)
+    
+    # Define a prompt template that includes the retrieval context, chat history, and user question
+    template = """
+    You are a helpful assistant with access to an Oracle database containing movie quotes and related metadata.
+    Use the additional context provided below to inform your answer.
 
-# Get user input from the Streamlit UI
-user_query = st.text_input("Enter your query:", placeholder="E.g. Tell me about war films")
+    Retrieval Context:
+    {retrieval_context}
 
-if st.button("Submit"):
-    if user_query and user_query.strip():
-        # Retrieve context from Oracle DB based on the user's query
-        rows = query_oracle(user_query)
-        context = format_context(rows)
-        
-        # Build the prompt for the LLM by including the retrieval context
-        prompt = (
-            "Here is some context from the Oracle database:\n\n"
-            f"{context}\n\n"
-            "Using the above context, answer the following query:\n"
-            f"{user_query}"
-        )
-        
-        try:
-            # Send the prompt to the Groq LLM
-            chat_completion = client.chat.completions.create(
-                messages=[{"role": "user", "content": prompt}],
-                model=LLM_model,
-            )
-            response = chat_completion.choices[0].message.content
-            st.success("Response:")
-            st.write(response)
-        except Exception as e:
-            st.error("An error occurred while processing your query.")
-            st.write(f"Error details: {e}")
+    Chat History:
+    {chat_history}
+
+    User Question:
+    {user_question}
+    """
+    prompt = ChatPromptTemplate.from_template(template)
+    
+    # Initialize the Groq LLM client using LangChain with model "llama-3.3"
+    llm = ChatGroq(api_key=os.getenv("GROQ_API_KEY"), model_name="llama-3.3-70b-versatile")
+    
+    # Create the chain: prompt -> LLM -> output parser
+    chain = prompt | llm | StrOutputParser()
+    
+    # Invoke the chain with all parameters
+    return chain.stream({
+        "retrieval_context": retrieval_context,
+        "chat_history": chat_history,
+        "user_question": user_query,
+    })
+
+# Display conversation history
+for message in st.session_state.chat_history:
+    if isinstance(message, HumanMessage):
+        with st.chat_message("Human"):
+            st.markdown(message.content)
     else:
-        st.warning("Please enter a valid query.")
+        with st.chat_message("AI"):
+            st.markdown(message.content)
 
-st.write("Note: This example connects to Oracle Database 23ai running in Docker (DSN: localhost:1521/freepdb1).")
+# Input area for user query
+user_query = st.chat_input("Enter your input...")
+
+if user_query is not None and user_query.strip() != "":
+    # Append the user message to chat history
+    st.session_state.chat_history.append(HumanMessage(user_query))
+    with st.chat_message("Human"):
+        st.markdown(user_query)
+        
+    # Get the AI response (streaming)
+    with st.chat_message("AI"):
+        ai_response = st.write_stream(get_response(user_query, st.session_state.chat_history))
+    
+    # Append the AI response to chat history
+    st.session_state.chat_history.append(AIMessage(ai_response))
