@@ -4,3 +4,6 @@
 
 # OpenAI test file - ignore because API key is inserted within code
 Test2.py
+
+# Ignore ONNX model
+onnx_model/

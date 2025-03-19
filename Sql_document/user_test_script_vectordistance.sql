@@ -1,12 +1,12 @@
-// use with 23ai_testuser1_connect
-// This for similarity search ie. vector search
-//show con_name;
-//show user;
+/* use with 23ai_testuser1_connect
+ This for similarity search ie. vector search */
+show con_name;
+show user;
 
-// quick check
-//select * from movie_quotes;
+-- quick check
+--select * from movie_quotes;
 
-// Vector search
+-- Vector search
 variable search_text varchar2(100);
 exec :search_text := 'Do, or do not. There is no try.';
 
@@ -20,4 +20,4 @@ SELECT vector_distance(movie_quote_vector, (vector_embedding(all_minilm_l12_v2 u
        movie_year
 FROM   movie_quotes
 order by 1
-fetch approximate first 3 rows only; // five closest distance only
+fetch approximate first 3 rows only; -- five closest distance only

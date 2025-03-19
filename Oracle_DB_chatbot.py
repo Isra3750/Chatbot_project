@@ -17,7 +17,7 @@ if "chat_history" not in st.session_state:
 
 # Streamlit app configuration
 st.set_page_config(page_title="Oracle Chatbot v1", page_icon="🤖")
-st.title("RAG Chatbot with Oracle database 23ai")
+st.title("Chatbot with Oracle database 23ai")
 st.write("Ask questions about your database or movie quotes to get started!")
 
 # Function to format Oracle retrieval results
