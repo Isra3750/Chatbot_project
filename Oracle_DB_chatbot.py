@@ -1,4 +1,4 @@
-# streamlit run Oracle_DB_chatbot.py
+# To run program -> streamlit run Oracle_DB_chatbot.py
 import os
 import streamlit as st
 import oracledb
@@ -8,7 +8,7 @@ from langchain_groq import ChatGroq
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
-# Load environment variables (e.g. GROQ_API_KEY)
+# Load environment variables (GROQ_API_KEY)
 load_dotenv()
 
 # Initialize chat history in session state if not already created
@@ -32,7 +32,7 @@ def format_context(rows):
         )
     return "\n\n".join(lines)
 
-# Function to query Oracle Database 23ai for retrieval context using vector search
+# Function to query Oracle Database 23ai for retrieval context using AI vector search
 def get_oracle_context(search_text):
     sql = """
         SELECT movie_quote, movie, movie_type, movie_year, distance
@@ -58,12 +58,11 @@ def get_oracle_context(search_text):
     except Exception as e:
         return f"Error retrieving context: {e}"
 
-# Function to get LLM response with retrieval context incorporated
+# Function to get LLM response with retrieval context within
 def get_response(user_query, chat_history):
     # Retrieve additional context from Oracle using the user query
     retrieval_context = get_oracle_context(user_query)
     
-    # Define a prompt template that includes the retrieval context, chat history, and user question
     template = """
     You are a helpful assistant with access to an Oracle database containing movie quotes and related metadata.
     Use the additional context provided below to inform your answer.
